@@ -3,8 +3,8 @@ import numpy as np
 import pickle 
 
 import glob
-
-# path = "/Users/vasily/Downloads/Telegram Desktop/VID_20240410_204750.mp4"
+from datetime import datetime
+# path = "/Users/vas ily/Downloads/Telegram Desktop/VID_20240410_204750.mp4"
 
 
 import sys
@@ -177,6 +177,10 @@ for i in range(len(images)):
     
     if cv2.waitKey(1) == ord("z"):
         display =  not display
-    ab_s.append(ab)
+    if ab is not None:
+        ab_s.append([datetime.strptime(images[i].split("_")[-1].split(".")[0], "%H%M%S").timestamp(), *ab])
+
+# Ts = np.array([ for i in ab_s])
+# As = 
 
 pickle.dump(ab_s, open("ab_s.pickle", "wb"))
