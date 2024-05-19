@@ -7,32 +7,38 @@ import sys
 
 path_dir = pathlib.Path(sys.argv[1])
 
-l_kksize = 11
+l_kksize = 23
 def float01_to_uint8(fl):
     return np.clip(fl*255, 0, 255).astype(np.uint8)
-
+norm_f = None
 
 def proc(img):
+    global norm_f
     R_output = None
     debug = img.copy()
     # crop = img[track_point[1]:blink_point[1], track_point[0]:blink_point[0], :]
     cv2.imshow("img", img)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)/255.
-    gray/=np.max(gray)
-    # # blur = cv2.GaussianBlur(gray, (g_kksize,g_kksize), 0)
+    if norm_f is None:
+        norm_f = np.max(gray)
+    gray/=norm_f
+    cv2.imshow("gray", gray)
+    # blur = cv2.GaussianBlur(gray, (5,5), 0)
     lap = cv2.Laplacian(gray, ksize=l_kksize, ddepth=cv2.CV_32F)
-    lap = np.clip(-lap/(2**(l_kksize*2 -2-2-2)), 0 , 400)
-    # dx = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=l_kksize)/(2**(l_kksize*2 -1-0-2))
-    # dy = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=l_kksize)/(2**(l_kksize*2 -1-0-2))
-    # sobel_abs = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
-    # mask = (sobel_abs> 0.008).astype(np.uint8)*255
-    mask = (lap > 0.002).astype(np.uint8)*255
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
+    # lap = cv2.GaussianBlur(lap, (7,7), 0)
+    lap = np.clip(lap/(2**(l_kksize*2 -2-2-2)), 0 , 200)
+    # lap = cv2.morphologyEx(lap, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)))
+    dx = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=l_kksize)/(2**(l_kksize*2 -1-0-2))
+    dy = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=l_kksize)/(2**(l_kksize*2 -1-0-2))
+    sobel_abs = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
+    # mask = (sobel_abs> 0.03).astype(np.uint8)*255
+    mask = (lap > 0.005).astype(np.uint8)*255
+    # mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
 
-    # cv2.imshow("sobel_abs", sobel_abs*10)
+    cv2.imshow("sobel_abs", sobel_abs*10)
     cv2.imshow("mask", mask)
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = []
     # circles = []
     if hierarchy is not None:
@@ -41,7 +47,7 @@ def proc(img):
             (x,y),radius = cv2.minEnclosingCircle(cnt)
 
             # print(a, np.pi*radius**2)
-            if a > 600 and np.abs(a - np.pi*radius**2)/(np.pi*radius**2) < 0.1:   
+            if a > 200 and np.abs(a - np.pi*radius**2)/(np.pi*radius**2) < 0.1:   
                 x,y,w,h = cv2.boundingRect(cnt) 
                 # print(h)
                 # h = cv2.convexHull(cnt)
@@ -76,6 +82,8 @@ images = [str(ip) for ip in path_dir.glob("*.jpg")]
 images.sort(key=lambda ip: int(ip.split("_")[-1].split(".")[0]))
 
 res = []
+
+# norm_f = np.max(gray)
 
 for p in  images:
     print(p)
