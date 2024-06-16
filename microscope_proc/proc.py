@@ -50,7 +50,7 @@ for path in glob.glob(path00 + "/*"):
                 cv2.imshow("mask", mask*255)
             contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     #          
-
+        
             for i, cnt in enumerate(contours):
                 hr  = hierarchy[0, i]
                 x,y,w,h = cv2.boundingRect(cnt)
@@ -72,7 +72,7 @@ for path in glob.glob(path00 + "/*"):
                         cv2.rectangle(debug,(x,y),(x+w,y+h),(0,255,0),2)
                         # cv2.putText(debug, f"{qg10:.2f} {qg50:.2f} {qg90:.2f} {qe10:.2f} {qe50:.2f} {qe90:.2f}", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (36,255,12), 2)
                         # area = cv2.contourArea(cnt)
-                        R = np.sqrt(w*h)
+                        R = np.sqrt(w*h/4)
                         pnt = (x+w/2, y+h/2)
                         droplets.append((p, R))
 
